@@ -6,6 +6,7 @@ namespace SimpleServer.Networking
         POST,
         PUT,
         PATCH,
-        DELETE
+        DELETE,
+        OPTIONS
     }
 }

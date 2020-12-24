@@ -36,7 +36,6 @@ namespace SimpleServer.Attributes
                 {
                     GetMapping getAttr = (GetMapping)attr;
                     AbstractMapping.Mapping[HttpMethod.GET].Add(getAttr.Path, new MappingInfo<AbstractMapping>(getAttr, method, controller));
-
                 }
                 foreach (var attr in method.GetCustomAttributes(typeof(PostMapping), true))
                 {
