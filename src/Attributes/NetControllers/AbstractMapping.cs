@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using SimpleServer.Exceptions;
 using SimpleServer.Networking;
 
@@ -27,6 +28,8 @@ namespace SimpleServer.Attributes
 
         public string Produces { get; set; }
 
+        public Regex PathRegex { get; private set; }
+
         static AbstractMapping()
         {
             foreach (var item in Enum.GetValues(typeof(HttpMethod)))
@@ -38,6 +41,11 @@ namespace SimpleServer.Attributes
 
         public AbstractMapping(string path)
         {
+            var pathParser = new Regex(@":([^\/\\]+)");
+            string regexString = "";
+            regexString = Regex.Replace(path, @"(/)", @"\/");
+            regexString = pathParser.Replace(regexString, @".*\/?");
+            PathRegex = new Regex(regexString);
             Path = path;
         }
 
@@ -58,6 +66,12 @@ namespace SimpleServer.Attributes
             return Mapping[method][path];
         }
 
+        public override string ToString()
+        {
+            return $"Path: {Path} -- Produces: {Produces} -- Accepts: {Accepts}";
+        }
+
+
     }
 
     /// <summary>
@@ -65,14 +79,29 @@ namespace SimpleServer.Attributes
     /// </summary>
     public struct MappingInfo<T> where T : IAbstractMapping
     {
-        public T mapping;
-        public MethodInfo method;
-        public Type classContainer;
-        public MappingInfo(T mapping, MethodInfo method, Type classContainer)
+        public T Mapping { get; private set; }
+        public MethodInfo Method { get; private set; }
+        public Dictionary<string, PathParamInfo> RequiredParams { get; private set; }
+
+        public Type ClassContainer { get; private set; }
+        public MappingInfo(T mapping, MethodInfo method, Type classContainer, Dictionary<string, PathParamInfo> pathParam)
         {
-            this.mapping = mapping;
-            this.method = method;
-            this.classContainer = classContainer;
+            Mapping = mapping;
+            Method = method;
+            ClassContainer = classContainer;
+            RequiredParams = pathParam;
+
+        }
+
+        public override string ToString()
+        {
+            string paramList = "";
+            foreach (var param in RequiredParams)
+            {
+                paramList += $"  Param: {param} \n";
+            }
+
+            return $" Mapping: {Mapping} \n Method: {Method.Name} \n Params:\n {paramList} \n Container: {ClassContainer}\n\n";
         }
     }
 }

@@ -1,10 +1,12 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using SimpleServer.Attributes;
 using SimpleServer.Exceptions;
 using SimpleServer.Networking.Data;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 namespace SimpleServer.Networking
 {
@@ -76,18 +78,17 @@ namespace SimpleServer.Networking
                 try
                 {
                     context.Response.StatusCode = 200;
-                    context.Response.ContentType = mappingInfo.mapping.Produces;
-                    var controller = mappingInfo.classContainer.GetConstructor(new Type[] { }).Invoke(new object[] { });
+                    context.Response.ContentType = mappingInfo.Mapping.Produces;
+                    var controller = mappingInfo.ClassContainer.GetConstructor(new Type[] { }).Invoke(new object[] { });
                     object result;
-                    if (mappingInfo.method.GetParameters().Length > 0)
+                    if (mappingInfo.Method.GetParameters().Length > 0)
                     {
                         var param = await ParseParams(mappingInfo, context);
-                        System.Console.WriteLine(param);
-                        result = mappingInfo.method.Invoke(controller, new object[] { param });
+                        result = mappingInfo.Method.Invoke(controller, param);
                     }
                     else
                     {
-                        result = mappingInfo.method.Invoke(controller, new object[] { });            
+                        result = mappingInfo.Method.Invoke(controller, new object[] { });            
                     }
                     if (result.GetType() == typeof(ResponseEntity))
                     {
@@ -142,27 +143,21 @@ namespace SimpleServer.Networking
             });
         }
 
-        public static async Task<object> ParseParams<T>(MappingInfo<T> mappingInfo, HttpListenerContext context) where T : IAbstractMapping
+        public static async Task<object[]> ParseParams<T>(MappingInfo<T> mappingInfo, HttpListenerContext context) where T : IAbstractMapping
         {
             return await Task.Run(async () =>
             {
-                if (!context.Request.HasEntityBody)
+                List<object> methodParams = new List<object>();
+                foreach (var param in mappingInfo.Method.GetParameters())
                 {
-                    throw new Exception("Controller requires parameters but not request body was sent");
+                    if (param.GetCustomAttribute<PathParam>() != null)
+                    {
+                        var contextPath = context.Request.Url.AbsolutePath;
+                        System.Console.WriteLine(contextPath);
+                    }
                 }
-                if (context.Request.ContentType.ToLower() != mappingInfo.mapping.Accepts)
-                {
-                    throw new Exception($"Content type must be {MediaTypes.ApplicationJson}. Received: {context.Request.ContentType}");
-                }
-                var encoding = context.Request.ContentEncoding;
-                string result;
-                using (var reader = new StreamReader(context.Request.InputStream, encoding))
-                {
-                    result = await reader.ReadToEndAsync();
-                }
-                var t = mappingInfo.method.GetParameters()[0].ParameterType;
-                var toReturn = JsonConvert.DeserializeObject(result, t);
-                return toReturn;
+
+                return methodParams.ToArray();
             });
         }
     }
