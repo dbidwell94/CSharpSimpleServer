@@ -150,7 +150,7 @@ namespace SimpleServer.Networking
                 {
                     throw new Exception("Controller requires parameters but not request body was sent");
                 }
-                if (context.Request.ContentType.ToLower() != MediaTypes.ApplicationJson.ToString().ToLower())
+                if (context.Request.ContentType.ToLower() != mappingInfo.mapping.Accepts)
                 {
                     throw new Exception($"Content type must be {MediaTypes.ApplicationJson}. Received: {context.Request.ContentType}");
                 }
