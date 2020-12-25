@@ -37,24 +37,26 @@ namespace SimpleServer.Attributes
                 foreach (var attr in method.GetCustomAttributes(typeof(GetMapping), true))
                 {
                     GetMapping getAttr = (GetMapping)attr;
-                    var info = new MappingInfo<AbstractMapping>(getAttr, method, controller, ExtractPathParams(method, getAttr));
-                    System.Console.WriteLine(info);
+                    var info = new MappingInfo<AbstractMapping>(getAttr, method, controller, ExtractPathParams(method, getAttr), ExtractRequestBody(method));
                     AbstractMapping.Mapping[HttpMethod.GET].Add(getAttr.Path, info);
                 }
                 foreach (var attr in method.GetCustomAttributes(typeof(PostMapping), true))
                 {
                     PostMapping postAttr = (PostMapping)attr;
-                    AbstractMapping.Mapping[HttpMethod.POST].Add(postAttr.Path, new MappingInfo<AbstractMapping>(postAttr, method, controller, ExtractPathParams(method, postAttr)));
+                    var info = new MappingInfo<AbstractMapping>(postAttr, method, controller, ExtractPathParams(method, postAttr), ExtractRequestBody(method));
+                    AbstractMapping.Mapping[HttpMethod.POST].Add(postAttr.Path, info);
                 }
                 foreach (var attr in method.GetCustomAttributes(typeof(DeleteMapping), true))
                 {
                     DeleteMapping deleteAttr = (DeleteMapping)attr;
-                    AbstractMapping.Mapping[HttpMethod.DELETE].Add(deleteAttr.Path, new MappingInfo<AbstractMapping>(deleteAttr, method, controller, ExtractPathParams(method, deleteAttr)));
+                    var info = new MappingInfo<AbstractMapping>(deleteAttr, method, controller, ExtractPathParams(method, deleteAttr), ExtractRequestBody(method));
+                    AbstractMapping.Mapping[HttpMethod.DELETE].Add(deleteAttr.Path, info);
                 }
                 foreach (var attr in method.GetCustomAttributes(typeof(PutMapping), true))
                 {
                     PutMapping putAttr = (PutMapping)attr;
-                    AbstractMapping.Mapping[HttpMethod.PUT].Add(putAttr.Path, new MappingInfo<AbstractMapping>(putAttr, method, controller, ExtractPathParams(method, putAttr)));
+                    var info = new MappingInfo<AbstractMapping>(putAttr, method, controller, ExtractPathParams(method, putAttr), ExtractRequestBody(method));
+                    AbstractMapping.Mapping[HttpMethod.PUT].Add(putAttr.Path, info);
                 }
             }
         }
@@ -82,5 +84,21 @@ namespace SimpleServer.Attributes
             }
             return paramInfo;
         }
+
+#nullable enable
+
+        private static RequestBodyInfo? ExtractRequestBody(MethodInfo method)
+        {
+            foreach (var param in method.GetParameters())
+            {
+                if (param.GetCustomAttribute<RequestBody>() != null)
+                {
+                    return new RequestBodyInfo(param.ParameterType, param.Position);
+                }
+            }
+            return null;
+        }
+
+#nullable disable
     }
 }

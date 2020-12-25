@@ -3,7 +3,6 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using SimpleServer.Attributes;
 using SimpleServer.Exceptions;
 using SimpleServer.Networking.Data;
@@ -88,7 +87,7 @@ namespace SimpleServer.Networking
                     }
                     else
                     {
-                        result = mappingInfo.Method.Invoke(controller, new object[] { });            
+                        result = mappingInfo.Method.Invoke(controller, new object[] { });
                     }
                     if (result.GetType() == typeof(ResponseEntity))
                     {
@@ -145,19 +144,38 @@ namespace SimpleServer.Networking
 
         public static async Task<object[]> ParseParams<T>(MappingInfo<T> mappingInfo, HttpListenerContext context) where T : IAbstractMapping
         {
+            string path = context.Request.Url.AbsolutePath;
             return await Task.Run(async () =>
             {
-                List<object> methodParams = new List<object>();
-                foreach (var param in mappingInfo.Method.GetParameters())
+                object[] methodParams = new object[mappingInfo.Method.GetParameters().Length];
+                var pathParamMatches = mappingInfo.Mapping.PathRegex.Match(path);
+                if (pathParamMatches.Groups.Count > 1)
                 {
-                    if (param.GetCustomAttribute<PathParam>() != null)
+                    for (int i = 1; i < pathParamMatches.Groups.Count; i++)
                     {
-                        var contextPath = context.Request.Url.AbsolutePath;
-                        System.Console.WriteLine(contextPath);
+                        int pathParamIndex = i - 1;
+                        var m = pathParamMatches.Groups[i];
+                        foreach (var paramInfo in mappingInfo.RequiredParams.Values)
+                        {
+                            if (paramInfo.ParamPathIndex == pathParamIndex)
+                            {
+                                var converted = Convert.ChangeType(m.Value, paramInfo.ParamType);
+                                methodParams[paramInfo.ParamMethodIndex] = converted;
+                            }
+                        }
                     }
                 }
-
-                return methodParams.ToArray();
+                if (mappingInfo.RequiredRequestBody != null)
+                {
+                    object result;
+                    using (var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding))
+                    {
+                        var resultString = await reader.ReadToEndAsync();
+                        result = JsonConvert.DeserializeObject(resultString, mappingInfo.RequiredRequestBody.Value.ParamType);
+                    }
+                    methodParams[mappingInfo.RequiredRequestBody.Value.ParamMethodIndex] = result;
+                }
+                return methodParams;
             });
         }
     }

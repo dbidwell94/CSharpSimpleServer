@@ -44,26 +44,28 @@ namespace SimpleServer.Attributes
             var pathParser = new Regex(@":([^\/\\]+)");
             string regexString = "";
             regexString = Regex.Replace(path, @"(/)", @"\/");
-            regexString = pathParser.Replace(regexString, @".*\/?");
+            regexString = pathParser.Replace(regexString, @"(.*)\/?");
+            regexString = regexString.Insert(0, "^");
+            regexString = regexString.Insert(regexString.Length, "$");
             PathRegex = new Regex(regexString);
             Path = path;
         }
 
         public static MappingInfo<AbstractMapping> FindPath(string path, HttpMethod method, HttpListenerContext currentContext)
         {
-            if (!Mapping[method].ContainsKey(path))
+            foreach (var map in Mapping[method].Keys)
             {
-                throw new ServerEndpointNotValidException($"{method} {path} not a valid endpoint", currentContext);
+                if (Mapping[method][map].Mapping.PathRegex.IsMatch(path))
+                {
+                    currentContext.Response.ContentType = Mapping[method][map].Mapping.Produces;
+                    return Mapping[method][map];
+                }
             }
-            return Mapping[method][path];
+            throw new ServerEndpointNotValidException($"{method} {path} not a valid endpoint", currentContext);
         }
         public static MappingInfo<AbstractMapping> FindPath(HttpMethod method, string path, HttpListenerContext currentContext)
         {
-            if (!Mapping[method].ContainsKey(path))
-            {
-                throw new ServerEndpointNotValidException($"{method} {path} not a valid endpoint", currentContext);
-            }
-            return Mapping[method][path];
+            return FindPath(path, method, currentContext);
         }
 
         public override string ToString()
@@ -77,20 +79,23 @@ namespace SimpleServer.Attributes
     /// <summary>
     /// Contains information about the Method Controller
     /// </summary>
+
+#nullable enable
     public struct MappingInfo<T> where T : IAbstractMapping
     {
         public T Mapping { get; private set; }
         public MethodInfo Method { get; private set; }
         public Dictionary<string, PathParamInfo> RequiredParams { get; private set; }
+        public RequestBodyInfo? RequiredRequestBody { get; private set; }
 
         public Type ClassContainer { get; private set; }
-        public MappingInfo(T mapping, MethodInfo method, Type classContainer, Dictionary<string, PathParamInfo> pathParam)
+        public MappingInfo(T mapping, MethodInfo method, Type classContainer, Dictionary<string, PathParamInfo> pathParam, RequestBodyInfo? requestBody)
         {
             Mapping = mapping;
             Method = method;
             ClassContainer = classContainer;
             RequiredParams = pathParam;
-
+            RequiredRequestBody = requestBody;
         }
 
         public override string ToString()
@@ -104,4 +109,5 @@ namespace SimpleServer.Attributes
             return $" Mapping: {Mapping} \n Method: {Method.Name} \n Params:\n {paramList} \n Container: {ClassContainer}\n\n";
         }
     }
+#nullable disable
 }
