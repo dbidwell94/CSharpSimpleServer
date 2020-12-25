@@ -24,6 +24,6 @@ jobs:
         # uses: brandedoutcast/publish-nuget@c12b8546b67672ee38ac87bea491ac94a587f7cc
         uses: brandedoutcast/publish-nuget@v2.5.5
         with:
-          PROJECT_FILE_PATH: ./SimpleServer.csproj
+          PROJECT_FILE_PATH: ./SimpleServerMin.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
 
