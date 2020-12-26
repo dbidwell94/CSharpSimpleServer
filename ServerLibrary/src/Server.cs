@@ -28,6 +28,7 @@ namespace SimpleServer
         public static event ServerDelegate onServerStart;
         public static event ServerDelegate onRequestReceived;
         public static event ServerDelegate onServerError;
+        public static event ServerDelegate onServerStop;
 
         #endregion
 
@@ -69,6 +70,12 @@ namespace SimpleServer
             };
         }
 
+        private static void HaultServerThread(ServerEventData data)
+        {
+            onServerStop -= HaultServerThread;
+            throw new Exception(data.message);
+        }
+
         private static void Run()
         {
             if (HttpListener.IsSupported)
@@ -83,6 +90,7 @@ namespace SimpleServer
                     onServerStart?.Invoke(new ServerEventData(null, null, null, $"Https Server started on port {HttpsPort}"));
                 }
                 IsRunning = true;
+                onServerStop += HaultServerThread;
                 while (IsRunning)
                 {
                     var context = listener.GetContext();
@@ -120,6 +128,15 @@ namespace SimpleServer
                 };
                 onEndpointRegistrationFinished?.Invoke(eventData);
             }
+        }
+
+        public static void Stop()
+        {
+            if (serverThread.IsAlive)
+            {
+                onServerStop?.Invoke(new ServerEventData(null, null, null, "Server stopped"));
+            }
+            IsRunning = false;
         }
     }
 
