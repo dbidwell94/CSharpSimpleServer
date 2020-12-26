@@ -171,7 +171,11 @@ namespace SimpleServer.Networking
                     using (var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding))
                     {
                         var resultString = await reader.ReadToEndAsync();
-                        result = JsonConvert.DeserializeObject(resultString, mappingInfo.RequiredRequestBody.Value.ParamType);
+                        var settings = new JsonSerializerSettings();
+                        settings.NullValueHandling = NullValueHandling.Ignore;
+                        settings.Formatting = Formatting.None;
+                        settings.MaxDepth = 15;
+                        result = JsonConvert.DeserializeObject(resultString, mappingInfo.RequiredRequestBody.Value.ParamType, settings);
                     }
                     methodParams[mappingInfo.RequiredRequestBody.Value.ParamMethodIndex] = result;
                 }
