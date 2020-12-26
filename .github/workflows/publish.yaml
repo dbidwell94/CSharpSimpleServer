@@ -29,5 +29,3 @@ jobs:
         with:
           PROJECT_FILE_PATH: ./ServerLibrary/SimpleServerMin.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-        working-directory: ./ServerLibrary
-
