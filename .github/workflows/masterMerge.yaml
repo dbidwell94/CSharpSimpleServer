@@ -18,7 +18,7 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Merge current branch with master
-      run: git merge origin master
+      run: git merge master
     - name: Resolve Dependencies
       run: dotnet restore
     - name: Build
