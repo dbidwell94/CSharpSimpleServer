@@ -22,7 +22,7 @@ namespace ServerTests
             arguments.Add("v", new int[] { 1, 2, 3, 4 });
             var entity = new ResponseEntity(arguments);
             Assert.Equal(15, entity.GetDataAsBytes().Length);
-            Assert.Equal(entity.Data.GetType(), typeof(Dictionary<string, object>));
+            Assert.Equal(typeof(Dictionary<string, object>), entity.Data.GetType());
             Assert.Equal("{\"v\":[1,2,3,4]}", entity.JSON);
         }
     }
