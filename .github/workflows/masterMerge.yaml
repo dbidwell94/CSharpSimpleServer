@@ -13,15 +13,25 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.301
+
     - name: Merge current branch with master
       run: git merge origin/master
+
     - name: Resolve Dependencies
       run: dotnet restore
+      working-directory: ./ServerLibrary
+
     - name: Build
       run: dotnet build -c Release
+      working-directory: ./ServerLibrary
+
     - name: Test
-      run: dotnet test
+      run: |
+          dotnet restore
+          dotnet test
+      working-directory: ./ServerTests
