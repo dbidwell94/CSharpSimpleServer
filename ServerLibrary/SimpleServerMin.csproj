@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <SelfContained>true</SelfContained>
     <PublishTrimmed>true</PublishTrimmed>
     <PublishReadyToRun>false</PublishReadyToRun>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <Version>0.1.4-alpha</Version>
+    <Version>0.1.5-alpha</Version>
     <Authors>Devin Bidwell</Authors>
     <Product>SimpleServerMin</Product>
   </PropertyGroup>
