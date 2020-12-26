@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Reflection;
 using SimpleServer.Exceptions;
 using SimpleServer.Attributes;
@@ -14,6 +15,7 @@ namespace SimpleServer
         /// Main Excecution thread
         /// </summary>
         private static Thread serverThread;
+        private static CancellationTokenSource cancellationToken = new CancellationTokenSource();
 
         #region Properties
         public static bool IsRunning { get; private set; }
@@ -28,6 +30,7 @@ namespace SimpleServer
         public static event ServerDelegate onServerStart;
         public static event ServerDelegate onRequestReceived;
         public static event ServerDelegate onServerError;
+        public static event ServerDelegate onServerStop;
 
         #endregion
 
@@ -41,6 +44,7 @@ namespace SimpleServer
             Port = portNumber;
             HttpsPort = Port + 1;
             UsingHttps = useHttps;
+            Run();
             serverThread.Start();
         }
 
@@ -55,12 +59,26 @@ namespace SimpleServer
             Port = portNumber;
             HttpsPort = httpsPortNumber;
             UsingHttps = useHttps;
+            Run();
             serverThread.Start();
         }
 
         static Server()
         {
-            serverThread = new Thread(() => Run());
+            serverThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    Thread.Sleep(500);
+                    if (cancellationToken.Token.IsCancellationRequested)
+                    {
+                        IsRunning = false;
+                        onServerStop?.Invoke(new ServerEventData(null, null, null, "Server stopped"));
+                        cancellationToken = new CancellationTokenSource();
+                        return;
+                    }
+                }
+            });
             ContextRunner.onRequestFinishedProcessing += (msg) => onRequestReceived?.Invoke(msg);
             ExceptionHandler.onError += (err) =>
             {
@@ -69,25 +87,29 @@ namespace SimpleServer
             };
         }
 
-        private static void Run()
+        private static async void Run()
         {
+
             if (HttpListener.IsSupported)
             {
-                var listener = new HttpListener();
-                listener.Start();
-                listener.Prefixes.Add($"http://*:{Port}/");
-                onServerStart?.Invoke(new ServerEventData(null, null, null, $"Server started on port {Port}"));
-                if (UsingHttps)
+                await Task.Run(() =>
                 {
-                    listener.Prefixes.Add($"https://*:{HttpsPort}");
-                    onServerStart?.Invoke(new ServerEventData(null, null, null, $"Https Server started on port {HttpsPort}"));
-                }
-                IsRunning = true;
-                while (IsRunning)
-                {
-                    var context = listener.GetContext();
-                    ContextRunner.RunWith(context);
-                }
+                    var listener = new HttpListener();
+                    listener.Start();
+                    IsRunning = true;
+                    listener.Prefixes.Add($"http://*:{Port}/");
+                    onServerStart?.Invoke(new ServerEventData(null, null, null, $"Server started on port {Port}"));
+                    if (UsingHttps)
+                    {
+                        listener.Prefixes.Add($"https://*:{HttpsPort}");
+                        onServerStart?.Invoke(new ServerEventData(null, null, null, $"Https Server started on port {HttpsPort}"));
+                    }
+                    while (IsRunning)
+                    {
+                        var context = listener.GetContext();
+                        ContextRunner.RunWith(context);
+                    }
+                }, cancellationToken.Token);
             }
             else
             {
@@ -120,6 +142,11 @@ namespace SimpleServer
                 };
                 onEndpointRegistrationFinished?.Invoke(eventData);
             }
+        }
+
+        public static void Stop()
+        {
+            cancellationToken.Cancel();
         }
     }
 
