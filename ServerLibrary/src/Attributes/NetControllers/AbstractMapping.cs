@@ -51,22 +51,27 @@ namespace SimpleServer.Attributes
             Path = path;
         }
 
-        public static MappingInfo<AbstractMapping> FindPath(string path, HttpMethod method, HttpListenerContext currentContext)
+#nullable enable
+        public static MappingInfo<AbstractMapping> FindPath(string path, HttpMethod method, HttpListenerContext? currentContext)
         {
             foreach (var map in Mapping[method].Keys)
             {
                 if (Mapping[method][map].Mapping.PathRegex.IsMatch(path))
                 {
-                    currentContext.Response.ContentType = Mapping[method][map].Mapping.Produces;
+                    if (currentContext != null)
+                    {
+                        currentContext.Response.ContentType = Mapping[method][map].Mapping.Produces;
+                    }
                     return Mapping[method][map];
                 }
             }
             throw new ServerEndpointNotValidException($"{method} {path} not a valid endpoint", currentContext);
         }
-        public static MappingInfo<AbstractMapping> FindPath(HttpMethod method, string path, HttpListenerContext currentContext)
+        public static MappingInfo<AbstractMapping> FindPath(HttpMethod method, string path, HttpListenerContext? currentContext)
         {
             return FindPath(path, method, currentContext);
         }
+#nullable disable
 
         public override string ToString()
         {

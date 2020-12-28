@@ -22,6 +22,7 @@ namespace SimpleServer
         public static bool UsingHttps { get; private set; }
         public static int Port { get; private set; }
         public static int HttpsPort { get; private set; }
+        private static HttpListener listener;
         #endregion
 
         #region Server Events
@@ -63,22 +64,28 @@ namespace SimpleServer
             serverThread.Start();
         }
 
-        static Server()
+        private static void KeepThreadAlive()
         {
-            serverThread = new Thread(() =>
+            while (true)
             {
-                while (true)
+                Thread.Sleep(500);
+                if (cancellationToken.Token.IsCancellationRequested)
                 {
-                    Thread.Sleep(500);
-                    if (cancellationToken.Token.IsCancellationRequested)
+                    IsRunning = false;
+                    onServerStop?.Invoke(new ServerEventData(null, null, null, "Server stopped"));
+                    cancellationToken = new CancellationTokenSource();
+                    serverThread = new Thread(KeepThreadAlive);
+                    if (listener.IsListening)
                     {
-                        IsRunning = false;
-                        onServerStop?.Invoke(new ServerEventData(null, null, null, "Server stopped"));
-                        cancellationToken = new CancellationTokenSource();
-                        return;
+                        listener.Stop();
                     }
                 }
-            });
+            }
+        }
+
+        static Server()
+        {
+            serverThread = new Thread(KeepThreadAlive);
             ContextRunner.onRequestFinishedProcessing += (msg) => onRequestReceived?.Invoke(msg);
             ExceptionHandler.onError += (err) =>
             {
@@ -94,7 +101,7 @@ namespace SimpleServer
             {
                 await Task.Run(() =>
                 {
-                    var listener = new HttpListener();
+                    listener = new HttpListener();
                     listener.Start();
                     IsRunning = true;
                     listener.Prefixes.Add($"http://*:{Port}/");
@@ -106,8 +113,15 @@ namespace SimpleServer
                     }
                     while (IsRunning)
                     {
-                        var context = listener.GetContext();
-                        ContextRunner.RunWith(context);
+                        try
+                        {
+                            var context = listener.GetContext();
+                            ContextRunner.RunWith(context);
+                        }
+                        catch (HttpListenerException)
+                        {
+
+                        }
                     }
                 }, cancellationToken.Token);
             }
