@@ -1,5 +1,3 @@
-using System;
-
 namespace SimpleServer.Exceptions
 {
     public class ServerNotSupportedException : AbstractServerException

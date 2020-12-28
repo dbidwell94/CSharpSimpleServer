@@ -1,5 +1,3 @@
-using System;
-using System.Net;
 using SimpleServer.Networking.Data;
 
 namespace SimpleServer.Exceptions
