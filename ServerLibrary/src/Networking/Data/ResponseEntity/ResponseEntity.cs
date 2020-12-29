@@ -5,28 +5,28 @@ namespace SimpleServer.Networking.Data
 {
     public class ResponseEntity : IJsonSerializeable
     {
-        public static JsonSerializerSettings serializerSettings { get; private set; }
+        public ResponseEntitySettings ResponseEntitySettings { get; set; }
         public object Data { get; private set; } = null;
 
         public ResponseEntity()
         {
-
+            ResponseEntitySettings = new ResponseEntitySettings();
         }
 
-        static ResponseEntity()
+        public ResponseEntity(object data) : this()
         {
-            serializerSettings = new JsonSerializerSettings();
-            serializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            this.Data = data;
         }
 
-        public ResponseEntity(object data)
+        public ResponseEntity(object data, ResponseEntitySettings settings)
         {
             Data = data;
+            ResponseEntitySettings = settings;
         }
 
         public string JSON
         {
-            get { return JsonConvert.SerializeObject(Data, serializerSettings); }
+            get { return JsonConvert.SerializeObject(Data, ResponseEntitySettings.JsonSerializerSettings); }
         }
 
         public byte[] GetDataAsBytes()
