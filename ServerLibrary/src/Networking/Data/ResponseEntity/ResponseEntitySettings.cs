@@ -26,6 +26,8 @@ namespace SimpleServer.Networking.Data
             }
         }
 
+        public bool AcceptRanges { get; set; } = false;
+
         public ResponseEntitySettings()
         {
             JsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;

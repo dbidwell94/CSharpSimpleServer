@@ -11,30 +11,14 @@ class HeaderTests
     public void CheckHeaderRangePopulatedCorrectly()
     {
         var headers = new ServerResponseHeaders();
-        var rangeHeader = RangeHeader.Create(new RangeHeaderValue[] { new RangeHeaderValue(0, 50) });
-        headers.SetRange(rangeHeader);
-        Assert.AreEqual("bytes=0-50", headers.Range);
+        headers.SetRange(RangeHeader.Create(new RangeHeaderValue(0, 50)));
+        Assert.AreEqual("bytes 0-50/50", headers.Range);
 
-        rangeHeader = RangeHeader.Create(new RangeHeaderValue[] { new RangeHeaderValue(0, 50), new RangeHeaderValue(100, 500) });
-        headers.SetRange(rangeHeader);
-        Assert.AreEqual("bytes=0-50, 100-500", headers.Range);
+        headers.SetRange(RangeHeader.Create(new RangeHeaderValue()));
+        Assert.AreEqual("bytes 0-0/0", headers.Range);
 
-        rangeHeader = RangeHeader.Create(new RangeHeaderValue[] { new RangeHeaderValue(0, 50), new RangeHeaderValue(100, null) });
-        headers.SetRange(rangeHeader);
-        Assert.AreEqual("bytes=0-50, 100-", headers.Range);
-
-        rangeHeader = RangeHeader.Create(new RangeHeaderValue[] { new RangeHeaderValue(0, 50), new RangeHeaderValue(null, 500) });
-        headers.SetRange(rangeHeader);
-        Assert.AreEqual("bytes=0-50, -500", headers.Range);
-
-        rangeHeader = RangeHeader.Create(new RangeHeaderValue[] { new RangeHeaderValue(0, 50), new RangeHeaderValue(null, null) });
-        headers.SetRange(rangeHeader);
-        Assert.AreEqual("bytes=0-50", headers.Range);
-
-        rangeHeader = RangeHeader.Create(new RangeHeaderValue[] { new RangeHeaderValue(0, 50), new RangeHeaderValue() });
-        headers.SetRange(rangeHeader);
-        Assert.AreEqual("bytes=0-50", headers.Range);
-
+        headers = new ServerResponseHeaders();
+        Assert.AreEqual(null, headers.Range);
     }
 
     [TestCase]

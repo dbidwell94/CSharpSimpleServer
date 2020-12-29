@@ -114,6 +114,7 @@ namespace SimpleServer.Networking
             {
                 try
                 {
+                    data.ParseHeadersIntoContext(currentContext);
                     var byteBuffer = data.GetDataAsBytes();
                     currentContext.Response.ContentLength64 = byteBuffer.Length;
                     await currentContext.Response.OutputStream.WriteAsync(byteBuffer, 0, byteBuffer.Length);
