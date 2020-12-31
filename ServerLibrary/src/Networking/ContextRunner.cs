@@ -78,6 +78,7 @@ namespace SimpleServer.Networking
                     context.Response.StatusCode = 200;
                     context.Response.ContentType = mappingInfo.Mapping.Produces;
                     var controller = mappingInfo.ClassContainer.GetConstructor(new Type[] { }).Invoke(new object[] { });
+                    AutowiredAttribute.InjectServices(controller);
                     object result;
                     if (mappingInfo.Method.GetParameters().Length > 0)
                     {
