@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using SimpleServer;
 using SimpleServer.Networking;
 using SimpleServer.Networking.Headers;
 
