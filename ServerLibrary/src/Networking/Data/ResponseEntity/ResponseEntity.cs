@@ -64,7 +64,6 @@ namespace SimpleServer.Networking.Data
                 {
                     var propInfo = prop.GetCustomAttribute<HeaderNameAttribute>();
                     var propValue = (string)prop.GetValue(Headers);
-                    Console.WriteLine($"{propInfo.HttpName} - {propValue}");
                     if (propValue != null && propValue != "")
                     {
                         currentContext.Response.Headers.Add(propInfo.HttpName, propValue);

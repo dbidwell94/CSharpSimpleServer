@@ -22,13 +22,13 @@ namespace SimpleServer.Attributes
             {
                 if (param.GetCustomAttribute<InjectedAttribute>() != null)
                 {
-                    if (param.ParameterType == typeof(HttpRequestHeaders))
+                    if (param.ParameterType == typeof(WebHeaderCollection))
                     {
                         toReturn.Add(new ParameterTypeInfo
                         {
                             ParameterPosition = param.Position,
-                            ParameterObject  = currentContext.Request.Headers
-                        });
+                            ParameterObject = currentContext.Request.Headers
+                    });
                     }
                 }
             }

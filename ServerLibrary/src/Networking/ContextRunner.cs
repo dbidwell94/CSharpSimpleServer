@@ -59,7 +59,7 @@ namespace SimpleServer.Networking
             {
                 try
                 {
-                    throw new InternalServerErrorException(ex.Message, context);
+                    throw new InternalServerErrorException(ex.Message, context, ex);
                 }
                 catch (InternalServerErrorException e)
                 {
@@ -99,7 +99,7 @@ namespace SimpleServer.Networking
                 {
                     try
                     {
-                        throw new InternalServerErrorException(e.Message, context);
+                        throw new InternalServerErrorException(e.Message, context, e);
                     }
                     catch (InternalServerErrorException ex)
                     {
@@ -133,7 +133,7 @@ namespace SimpleServer.Networking
                 {
                     try
                     {
-                        throw new InternalServerErrorException(e.Message, currentContext);
+                        throw new InternalServerErrorException(e.Message, currentContext, e);
                     }
                     catch (InternalServerErrorException ex)
                     {
