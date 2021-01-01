@@ -180,6 +180,13 @@ namespace SimpleServer.Networking
                     }
                     methodParams[mappingInfo.RequiredRequestBody.Value.ParamMethodIndex] = result;
                 }
+                var injectionParams = InjectedAttribute.FindParameters(mappingInfo.Method, context);
+
+                foreach (var injection in injectionParams)
+                {
+                    methodParams[injection.ParameterPosition] = injection.ParameterObject;
+                }
+
                 return methodParams;
             });
         }
