@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using SimpleServer.Exceptions;
 using SimpleServer.Networking;
+using SimpleServer.Networking.Data;
 
 namespace SimpleServer.Attributes
 {
@@ -72,6 +73,21 @@ namespace SimpleServer.Attributes
             return FindPath(path, method, currentContext);
         }
 #nullable disable
+
+        public static ResponseEntity HandleOptions(string path, HttpMethod method, string requestedHeaders)
+        {
+            string[] headerArr = requestedHeaders.Split(',');
+            foreach (var method in Enum.GetValues(typeof(HttpMethod)))
+            {
+                foreach (var map in Mapping[(HttpMethod)method].Keys)
+                {
+                    if (Mapping[(HttpMethod)method][map].Mapping.PathRegex.IsMatch(path))
+                    {
+
+                    }
+                }
+            }
+        }
 
         public override string ToString()
         {

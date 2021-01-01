@@ -43,6 +43,10 @@ namespace SimpleServer.Networking
                         GetResponse(PatchMapping.FindPath(path, method, context), context);
                         break;
 
+                    case HttpMethod.OPTIONS:
+                        var requestedMethod = Enum.Parse<HttpMethod>(context.Request.Headers.Get("Access-Control-Request-Method"));
+                        var requestedHeaders = context.Request.Headers.Get("Access-Control-Request-Headers");
+
                     default:
                         throw new ServerRequestMethodNotSupportedException($"{httpMethod} is not supported", context);
                 }
