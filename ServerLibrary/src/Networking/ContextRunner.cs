@@ -59,7 +59,7 @@ namespace SimpleServer.Networking
             {
                 try
                 {
-                    throw new InternalServerErrorException(ex.Message, context);
+                    throw new InternalServerErrorException(ex.Message, context, ex);
                 }
                 catch (InternalServerErrorException e)
                 {
@@ -78,6 +78,7 @@ namespace SimpleServer.Networking
                     context.Response.StatusCode = 200;
                     context.Response.ContentType = mappingInfo.Mapping.Produces;
                     var controller = mappingInfo.ClassContainer.GetConstructor(new Type[] { }).Invoke(new object[] { });
+                    AutowiredAttribute.InjectServices(controller);
                     object result;
                     if (mappingInfo.Method.GetParameters().Length > 0)
                     {
@@ -98,7 +99,7 @@ namespace SimpleServer.Networking
                 {
                     try
                     {
-                        throw new InternalServerErrorException(e.Message, context);
+                        throw new InternalServerErrorException(e.Message, context, e);
                     }
                     catch (InternalServerErrorException ex)
                     {
@@ -114,6 +115,7 @@ namespace SimpleServer.Networking
             {
                 try
                 {
+                    data.ParseHeadersIntoContext(currentContext);
                     var byteBuffer = data.GetDataAsBytes();
                     currentContext.Response.ContentLength64 = byteBuffer.Length;
                     await currentContext.Response.OutputStream.WriteAsync(byteBuffer, 0, byteBuffer.Length);
@@ -131,7 +133,7 @@ namespace SimpleServer.Networking
                 {
                     try
                     {
-                        throw new InternalServerErrorException(e.Message, currentContext);
+                        throw new InternalServerErrorException(e.Message, currentContext, e);
                     }
                     catch (InternalServerErrorException ex)
                     {
@@ -178,6 +180,13 @@ namespace SimpleServer.Networking
                     }
                     methodParams[mappingInfo.RequiredRequestBody.Value.ParamMethodIndex] = result;
                 }
+                var injectionParams = InjectedAttribute.FindParameters(mappingInfo.Method, context);
+
+                foreach (var injection in injectionParams)
+                {
+                    methodParams[injection.ParameterPosition] = injection.ParameterObject;
+                }
+
                 return methodParams;
             });
         }

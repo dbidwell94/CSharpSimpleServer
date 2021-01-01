@@ -10,5 +10,10 @@ namespace SimpleServer.Exceptions
         {
             Message = message;
         }
+
+        public AbstractServerException(string message, Exception innerException) : base(message, innerException)
+        {
+            Message = message;
+        }
     }
 }

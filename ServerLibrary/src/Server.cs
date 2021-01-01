@@ -92,6 +92,7 @@ namespace SimpleServer
                 var serverEvent = new ServerEventData(null, null, err, null);
                 onServerError?.Invoke(serverEvent);
             };
+            ServiceAttribute.RegisterServices();
         }
 
         private static async void Run()
