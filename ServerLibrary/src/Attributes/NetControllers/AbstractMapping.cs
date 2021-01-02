@@ -66,7 +66,7 @@ namespace SimpleServer.Attributes
                     return Mapping[method][map];
                 }
             }
-            throw new ServerEndpointNotValidException($"{method} {path} not a valid endpoint", currentContext);
+            throw new ServerEndpointNotValidException($"{method} {path} not a valid endpoint", currentContext, HttpStatus.NOT_FOUND);
         }
         public static MappingInfo<AbstractMapping> FindPath(HttpMethod method, string path, HttpListenerContext? currentContext)
         {

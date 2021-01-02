@@ -93,7 +93,7 @@ namespace SimpleServer.Exceptions
                 }
                 else
                 {
-                    response = new ResponseEntity(exception.Message, status);
+                    response = new ResponseEntity(exception.ToString(), status);
                 }
             }
         }
