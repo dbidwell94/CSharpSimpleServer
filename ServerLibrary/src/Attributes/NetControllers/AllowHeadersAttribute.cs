@@ -2,6 +2,7 @@ using System;
 
 namespace SimpleServer.Attributes
 {
+    
     [AttributeUsage(AttributeTargets.Method)]
     public class AllowHeadersAttribute : Attribute
     {

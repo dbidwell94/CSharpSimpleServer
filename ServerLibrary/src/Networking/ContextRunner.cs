@@ -46,6 +46,9 @@ namespace SimpleServer.Networking
                     case HttpMethod.OPTIONS:
                         var requestedMethod = Enum.Parse<HttpMethod>(context.Request.Headers.Get("Access-Control-Request-Method"));
                         var requestedHeaders = context.Request.Headers.Get("Access-Control-Request-Headers");
+                        var response = AbstractMapping.HandleOptionsRequest(path, requestedMethod, requestedHeaders);
+                        SendResponse(response, context);
+                        break;
 
                     default:
                         throw new ServerRequestMethodNotSupportedException($"{httpMethod} is not supported", context);

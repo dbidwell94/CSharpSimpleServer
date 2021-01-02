@@ -14,6 +14,9 @@ namespace SimpleServer.Networking
         [HeaderName("Location")]
         public string Location { get; set; }
 
+        [HeaderName("Access-Control-Allow-Headers")]
+        public string AllowHeaders{get; set;}
+
         public void SetRange(RangeHeader header)
         {
             Range = header.Range;

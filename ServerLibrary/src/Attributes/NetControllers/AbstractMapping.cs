@@ -74,19 +74,31 @@ namespace SimpleServer.Attributes
         }
 #nullable disable
 
-        public static ResponseEntity HandleOptions(string path, HttpMethod method, string requestedHeaders)
+        public static ResponseEntity HandleOptionsRequest(string path, HttpMethod method, string requestedHeaders)
         {
             string[] headerArr = requestedHeaders.Split(',');
-            foreach (var method in Enum.GetValues(typeof(HttpMethod)))
+            foreach (var map in Mapping[(HttpMethod)method].Keys)
             {
-                foreach (var map in Mapping[(HttpMethod)method].Keys)
+                if (Mapping[(HttpMethod)method][map].Mapping.PathRegex.IsMatch(path))
                 {
-                    if (Mapping[(HttpMethod)method][map].Mapping.PathRegex.IsMatch(path))
+                    if (Mapping[(HttpMethod)method][map].Method.GetCustomAttribute<AllowHeadersAttribute>() != null)
                     {
-
+                        var allowedAttr = Mapping[(HttpMethod)method][map].Method.GetCustomAttribute<AllowHeadersAttribute>();
+                        var headers = new ServerResponseHeaders();
+                        headers.SetCors(SimpleServer.Networking.Headers.CorsHeader.BuildHeader("*"));
+                        headers.AllowHeaders = allowedAttr.AllowedHeaders;
+                        return new ResponseEntity(null, headers);
                     }
+                    else
+                    {
+                        var headers = new ServerResponseHeaders();
+                        headers.SetCors(SimpleServer.Networking.Headers.CorsHeader.BuildHeader("*"));
+                        return new ResponseEntity(null, headers);
+                    }
+
                 }
             }
+            return new ResponseEntity();
         }
 
         public override string ToString()
