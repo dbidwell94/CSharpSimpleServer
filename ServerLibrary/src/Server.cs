@@ -119,9 +119,9 @@ namespace SimpleServer
                             var context = listener.GetContext();
                             ContextRunner.RunWith(context);
                         }
-                        catch (HttpListenerException)
+                        catch (HttpListenerException ex)
                         {
-
+                            onServerError?.Invoke(new ServerEventData(null, null, null, ex.ToString()));
                         }
                     }
                 }, cancellationToken.Token);

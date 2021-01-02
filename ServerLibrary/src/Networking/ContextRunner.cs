@@ -62,6 +62,10 @@ namespace SimpleServer.Networking
             {
                 ExceptionHandler.HandleException(ex, context);
             }
+            catch (AbstractServerException ex)
+            {
+                ExceptionHandler.HandleException(ex, context);
+            }
             catch (Exception ex)
             {
                 try
@@ -102,15 +106,29 @@ namespace SimpleServer.Networking
                         SendResponse(resultResponse, context);
                     }
                 }
+                catch (AbstractServerException ex)
+                {
+                    ExceptionHandler.HandleException(ex, context);
+                }
                 catch (Exception e)
                 {
+                    Exception ex = e;
+                    while (ex != null)
+                    {
+                        if (ex.GetType().IsSubclassOf(typeof(AbstractServerException)))
+                        {
+                            ExceptionHandler.HandleException((AbstractServerException)ex, context);
+                            return;
+                        }
+                        ex = ex.InnerException;
+                    }
                     try
                     {
                         throw new InternalServerErrorException(e.Message, context, e);
                     }
-                    catch (InternalServerErrorException ex)
+                    catch (InternalServerErrorException exception)
                     {
-                        ExceptionHandler.HandleException(ex, context);
+                        ExceptionHandler.HandleException(exception, context);
                     }
                 }
             });
@@ -122,6 +140,10 @@ namespace SimpleServer.Networking
             {
                 try
                 {
+                    if (data.Status.HasValue)
+                    {
+                        currentContext.Response.StatusCode = (int)data.Status.Value;
+                    }
                     data.ParseHeadersIntoContext(currentContext);
                     var byteBuffer = data.GetDataAsBytes();
                     currentContext.Response.ContentLength64 = byteBuffer.Length;

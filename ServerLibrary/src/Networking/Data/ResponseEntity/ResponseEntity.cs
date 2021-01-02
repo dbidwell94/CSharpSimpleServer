@@ -4,6 +4,7 @@ using System.Net;
 using System.Reflection;
 using Newtonsoft.Json;
 using SimpleServer.Networking.Headers;
+using SimpleServer.Networking.Data;
 
 namespace SimpleServer.Networking.Data
 {
@@ -12,6 +13,9 @@ namespace SimpleServer.Networking.Data
         public ResponseEntitySettings ResponseEntitySettings { get; set; }
         public ServerResponseHeaders Headers { get; private set; }
         public object Data { get; private set; } = null;
+
+        public HttpStatus? Status {get; set;}
+
         public string JSON
         {
             get { return JsonConvert.SerializeObject(Data, ResponseEntitySettings.JsonSerializerSettings); }
@@ -39,14 +43,37 @@ namespace SimpleServer.Networking.Data
             Headers = headers;
         }
 
+        public ResponseEntity(object data, HttpStatus? status) : this(data)
+        {
+            Status = status;
+        }
+
+        public ResponseEntity(object data, ServerResponseHeaders headers, HttpStatus? status) : this(data)
+        {
+            Headers = headers;
+            Status = status;
+        }
+
         public ResponseEntity(object data, ResponseEntitySettings settings) : this(data)
         {
             ResponseEntitySettings = settings;
         }
 
+        public ResponseEntity(object data, ResponseEntitySettings settings, HttpStatus? status) : this(data)
+        {
+            ResponseEntitySettings = settings;
+            Status = status;
+        }
+
         public ResponseEntity(object data, ServerResponseHeaders headers, ResponseEntitySettings settings) : this(data, headers)
         {
             ResponseEntitySettings = settings;
+        }
+
+        public ResponseEntity(object data, ServerResponseHeaders headers, ResponseEntitySettings settings, HttpStatus? status) : this(data, headers)
+        {
+            ResponseEntitySettings = settings;
+            Status = status;
         }
 
         public byte[] GetDataAsBytes()

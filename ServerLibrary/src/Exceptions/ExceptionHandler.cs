@@ -45,8 +45,6 @@ namespace SimpleServer.Exceptions
         /// decorator.
         /// </summary>
         /// <param name="exception">An instance of a thrown <see cref="SimpleServer.Exceptions.AbstractServerException" /></param>
-        /// <typeparam name="T">The implied Type of the Exception that extends 
-        /// <see cref="SimpleServer.Exceptions.AbstractServerException" /></typeparam>
         public static void HandleException(AbstractServerException exception, HttpListenerContext currentContext)
         {
             HandleException(exception, out ResponseEntity response);
@@ -56,32 +54,47 @@ namespace SimpleServer.Exceptions
 
         public static void HandleException(AbstractServerException exception, out ResponseEntity response)
         {
+
+            HttpStatus status = exception.Status.HasValue ? exception.Status.Value : HttpStatus.INTERNAL_SERVER_ERROR;
+
             if (Handler == null)
             {
-                response = new ResponseEntity(exception);
+                response = new ResponseEntity(exception, status);
             }
             else if (exception.GetType() == typeof(ServerEndpointNotValidException))
             {
                 var ex = (ServerEndpointNotValidException)exception;
                 response = Handler.HandleEndpointNotValidException(ex);
+                response.Status = status;
             }
             else if (exception.GetType() == typeof(ServerRequestMethodNotSupportedException))
             {
                 var ex = (ServerRequestMethodNotSupportedException)exception;
                 response = Handler.HandleServerRequestMethodNotSupportedException(ex);
+                response.Status = status;
             }
             else if (exception.GetType() == typeof(InternalServerErrorException))
             {
                 var ex = (InternalServerErrorException)exception;
                 response = Handler.HandleInternalServerErrorException(ex);
+                response.Status = status;
             }
             else if (exception.GetType() == typeof(AbstractServerException))
             {
                 response = Handler.HandleAbstractServerException(exception);
+                response.Status = status;
             }
             else
             {
-                response = new ResponseEntity(exception.Message);
+                if (exception.GetType().IsSubclassOf(typeof(AbstractServerException)))
+                {
+                    response = Handler.HandleAbstractServerException(exception);
+                    response.Status = status;
+                }
+                else
+                {
+                    response = new ResponseEntity(exception.Message, status);
+                }
             }
         }
     }
