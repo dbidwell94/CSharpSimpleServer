@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using SimpleServer.Exceptions;
 using SimpleServer.Networking;
+using SimpleServer.Networking.Data;
 
 namespace SimpleServer.Attributes
 {
@@ -72,6 +73,33 @@ namespace SimpleServer.Attributes
             return FindPath(path, method, currentContext);
         }
 #nullable disable
+
+        public static ResponseEntity HandleOptionsRequest(string path, HttpMethod method, string requestedHeaders)
+        {
+            string[] headerArr = requestedHeaders.Split(',');
+            foreach (var map in Mapping[(HttpMethod)method].Keys)
+            {
+                if (Mapping[(HttpMethod)method][map].Mapping.PathRegex.IsMatch(path))
+                {
+                    if (Mapping[(HttpMethod)method][map].Method.GetCustomAttribute<AllowHeadersAttribute>() != null)
+                    {
+                        var allowedAttr = Mapping[(HttpMethod)method][map].Method.GetCustomAttribute<AllowHeadersAttribute>();
+                        var headers = new ServerResponseHeaders();
+                        headers.SetCors(SimpleServer.Networking.Headers.CorsHeader.BuildHeader("*"));
+                        headers.AllowHeaders = allowedAttr.AllowedHeaders;
+                        return new ResponseEntity(null, headers);
+                    }
+                    else
+                    {
+                        var headers = new ServerResponseHeaders();
+                        headers.SetCors(SimpleServer.Networking.Headers.CorsHeader.BuildHeader("*"));
+                        return new ResponseEntity(null, headers);
+                    }
+
+                }
+            }
+            return new ResponseEntity();
+        }
 
         public override string ToString()
         {

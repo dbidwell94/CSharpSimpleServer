@@ -43,6 +43,13 @@ namespace SimpleServer.Networking
                         GetResponse(PatchMapping.FindPath(path, method, context), context);
                         break;
 
+                    case HttpMethod.OPTIONS:
+                        var requestedMethod = Enum.Parse<HttpMethod>(context.Request.Headers.Get("Access-Control-Request-Method"));
+                        var requestedHeaders = context.Request.Headers.Get("Access-Control-Request-Headers");
+                        var response = AbstractMapping.HandleOptionsRequest(path, requestedMethod, requestedHeaders);
+                        SendResponse(response, context);
+                        break;
+
                     default:
                         throw new ServerRequestMethodNotSupportedException($"{httpMethod} is not supported", context);
                 }
@@ -124,7 +131,7 @@ namespace SimpleServer.Networking
                     {
                         status = currentContext.Response.StatusCode,
                         exception = null,
-                        message = null,
+                        message = currentContext.Request.HttpMethod,
                         path = currentContext.Request.Url.AbsolutePath
                     };
                     onRequestFinishedProcessing?.Invoke(eventData);
