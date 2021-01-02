@@ -131,7 +131,7 @@ namespace SimpleServer.Networking
                     {
                         status = currentContext.Response.StatusCode,
                         exception = null,
-                        message = null,
+                        message = currentContext.Request.HttpMethod,
                         path = currentContext.Request.Url.AbsolutePath
                     };
                     onRequestFinishedProcessing?.Invoke(eventData);
