@@ -91,25 +91,35 @@ namespace SimpleServer.Networking
                     var controller = mappingInfo.ClassContainer.GetConstructor(new Type[] { }).Invoke(new object[] { });
                     AutowiredAttribute.InjectServices(controller);
                     object result;
-                    if (mappingInfo.Method.GetParameters().Length > 0)
+                    if (mappingInfo.Method.ReturnParameter.ParameterType == typeof(Task<ResponseEntity>))
                     {
-                        var param = await ParseParams(mappingInfo, context);
-                        result = mappingInfo.Method.Invoke(controller, param);
+                        if (mappingInfo.Method.GetParameters().Length > 0)
+                        {
+                            var param = await ParseParams(mappingInfo, context);
+                            result = await ((Task<ResponseEntity>)mappingInfo.Method.Invoke(controller, param));
+                        }
+                        else
+                        {
+                            result = await ((Task<ResponseEntity>)mappingInfo.Method.Invoke(controller, new object[] { }));
+                        }
                     }
                     else
                     {
-                        result = mappingInfo.Method.Invoke(controller, new object[] { });
+                        if (mappingInfo.Method.GetParameters().Length > 0)
+                        {
+                            var param = await ParseParams(mappingInfo, context);
+                            result = mappingInfo.Method.Invoke(controller, param);
+                        }
+                        else
+                        {
+                            result = mappingInfo.Method.Invoke(controller, new object[] { });
+                        }
                     }
+
                     if (result.GetType() == typeof(ResponseEntity))
                     {
                         var resultResponse = (ResponseEntity)result;
                         SendResponse(resultResponse, context);
-                    }
-                    if (result.GetType() == typeof(Task<ResponseEntity>))
-                    {
-                        var resultTask = (Task<ResponseEntity>)result;
-                        var resultTaskDone = await resultTask;
-                        SendResponse(resultTaskDone, context);
                     }
                 }
                 catch (AbstractServerException ex)
