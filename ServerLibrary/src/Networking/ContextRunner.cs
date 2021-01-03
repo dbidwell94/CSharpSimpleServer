@@ -105,6 +105,12 @@ namespace SimpleServer.Networking
                         var resultResponse = (ResponseEntity)result;
                         SendResponse(resultResponse, context);
                     }
+                    if (result.GetType() == typeof(Task<ResponseEntity>))
+                    {
+                        var resultTask = (Task<ResponseEntity>)result;
+                        var resultTaskDone = await resultTask;
+                        SendResponse(resultTaskDone, context);
+                    }
                 }
                 catch (AbstractServerException ex)
                 {
