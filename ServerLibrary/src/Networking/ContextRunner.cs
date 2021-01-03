@@ -145,9 +145,12 @@ namespace SimpleServer.Networking
                         currentContext.Response.StatusCode = (int)data.Status.Value;
                     }
                     data.ParseHeadersIntoContext(currentContext);
-                    var byteBuffer = data.GetDataAsBytes();
-                    currentContext.Response.ContentLength64 = byteBuffer.Length;
-                    await currentContext.Response.OutputStream.WriteAsync(byteBuffer, 0, byteBuffer.Length);
+                    if (data.Data != null)
+                    {
+                        var byteBuffer = data.GetDataAsBytes();
+                        currentContext.Response.ContentLength64 = byteBuffer.Length;
+                        await currentContext.Response.OutputStream.WriteAsync(byteBuffer, 0, byteBuffer.Length);
+                    }
                     currentContext.Response.OutputStream.Close();
                     var eventData = new ServerEventData
                     {
