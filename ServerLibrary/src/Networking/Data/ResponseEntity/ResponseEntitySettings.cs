@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace SimpleServer.Networking.Data
 {
@@ -31,7 +32,7 @@ namespace SimpleServer.Networking.Data
         public ResponseEntitySettings()
         {
             JsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            JsonSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
         }
-
     }
 }
