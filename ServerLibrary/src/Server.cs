@@ -32,7 +32,6 @@ namespace SimpleServer
         public static event ServerDelegate onRequestReceived;
         public static event ServerDelegate onServerError;
         public static event ServerDelegate onServerStop;
-
         #endregion
 
         /// <summary>
